@@ -11,9 +11,7 @@ from backend.sandbox import run_investigation
 from backend.agent import generate_hint
 from backend.diagnostics import get_first_error
 
-# ==========================================
-# 1. PERSISTENCE CONFIGURATION
-# ==========================================
+# PERSISTENCE CONFIGURATION
 SESSIONS_FILE = os.path.join("data", "sessions.json")
 PROBLEMS_FILE = os.path.join("data", "problems.json")
 
@@ -23,36 +21,33 @@ def save_sessions_to_disk(sessions_dict):
         with open(SESSIONS_FILE, "w") as f:
             json.dump(sessions_dict, f, indent=4)
     except Exception as e:
-        print(f"❌ Error saving sessions: {e}")
+        print(f"!!!!!!Error saving sessions: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global SESSIONS, PROBLEMS_DATA
-    
+
     if os.path.exists(PROBLEMS_FILE):
         with open(PROBLEMS_FILE, "r") as f:
             PROBLEMS_DATA.update(json.load(f))
-        print(f"✅ Loaded {len(PROBLEMS_DATA)} problems.")
+        print(f"Loaded {len(PROBLEMS_DATA)} problems.")
 
     if os.path.exists(SESSIONS_FILE):
         try:
             with open(SESSIONS_FILE, "r") as f:
                 SESSIONS.update(json.load(f))
-            print(f"✅ Loaded {len(SESSIONS)} existing sessions.")
+            print(f"Loaded {len(SESSIONS)} existing sessions.")
         except json.JSONDecodeError:
-            print("⚠️ sessions.json was empty or corrupt, starting fresh.")
+            print("!!sessions.json was empty or corrupt, starting fresh.")
 
-    yield 
+    yield
 
-    print("💾 Saving sessions before shutdown...")
+    print("Saving sessions before shutdown...")
     save_sessions_to_disk(SESSIONS)
 
-# ==========================================
 # 2. APPLICATION SETUP
-# ==========================================
-
 app = FastAPI(
-    title="LabTA Backend", 
+    title="LabTA Backend",
     description="AI-Powered Debugging Assistant",
     lifespan=lifespan
 )
@@ -65,28 +60,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SESSIONS: Dict[str, Dict] = {} 
+SESSIONS: Dict[str, Dict] = {}
 PROBLEMS_DATA: Dict[str, Any] = {}
 
-# ==========================================
 # 3. API DATA MODELS
-# ==========================================
-
 class SubmitRequest(BaseModel):
     user_id: str
     problem_id: str
     language: str
     code: str
 
-# NEW: Specific model for saving
+# Saving Requests
 class SaveRequest(BaseModel):
     user_id: str
     problem_id: str
     code: str
 
-# ==========================================
 # 4. API ENDPOINTS
-# ==========================================
 
 @app.get("/")
 def health_check():
@@ -100,9 +90,14 @@ def get_problems():
             "title": data.get("title"),
             "description": data.get("description"),
             "sample_cases": data.get("sample_cases"),
-            "difficulty": data.get("difficulty", "Unknown")
+            "difficulty": data.get("difficulty", "Unknown"),
+            "case_count": len(data.get("hidden_cases", []))
         }
     return sanitized
+
+@app.get("/sessions")
+def get_all_sessions():
+    return SESSIONS
 
 @app.get("/draft/{user_id}/{problem_id}")
 def get_draft(user_id: str, problem_id: str):
@@ -111,14 +106,14 @@ def get_draft(user_id: str, problem_id: str):
     """
     session_key = f"{user_id}_{problem_id}"
     user_state = SESSIONS.get(session_key, {})
-    
+
     return {
         "draft_code": user_state.get("draft_code", None),
         "attempts": user_state.get("attempt", 0),
         "last_error": user_state.get("last_error", None)
     }
 
-# --- NEW ENDPOINT: MANUAL SAVE ---
+#MANUAL SAVE
 @app.post("/save")
 def save_draft(request: SaveRequest):
     """
@@ -126,31 +121,24 @@ def save_draft(request: SaveRequest):
     Does NOT run the code. Just persists it to disk.
     """
     session_key = f"{request.user_id}_{request.problem_id}"
-    
-    # Get existing state or create new one
     user_state = SESSIONS.get(session_key, {"last_error": None, "attempt": 0})
-    
-    # Update only the draft code
+
     user_state["draft_code"] = request.code
-    
+
     SESSIONS[session_key] = user_state
     save_sessions_to_disk(SESSIONS)
-    
+
     return {"status": "SAVED", "message": "Code saved successfully."}
 
 @app.post("/submit")
 def submit_code(request: SubmitRequest):
-    """
-    Runs the code but does NOT overwrite the 'draft_code'.
-    Drafts are only updated via the /save endpoint now.
-    """
+
     user_id = request.user_id
     problem_id = request.problem_id
-    
+
     if problem_id not in PROBLEMS_DATA:
         raise HTTPException(status_code=404, detail="Problem ID not found")
 
-    # --- STEP 1: RUN THE INVESTIGATOR ---
     logs, error_type, evidence = run_investigation(
         code=request.code,
         language=request.language,
@@ -163,34 +151,31 @@ def submit_code(request: SubmitRequest):
         diag = get_first_error(evidence, request.language)
         clean_evidence = f"Line {diag['line']}: {diag['msg']}"
 
-    # --- STEP 2: SESSION LOGIC ---
     session_key = f"{user_id}_{problem_id}"
     user_state = SESSIONS.get(session_key, {"last_error": None, "attempt": 0})
     system_messages = []
-    
+
     if error_type == "SUCCESS":
-        system_messages.append(f"🎉 **Great Job!** You passed all tests.")
+        system_messages.append(f"**Great Job!** You passed all tests.")
         user_state["attempt"] = 0
     elif user_state["last_error"] == error_type:
         user_state["attempt"] += 1
-        system_messages.append(f"⚠️ **Issue Persists:** Attempt #{user_state['attempt']} at fixing {error_type}.")
+        system_messages.append(f"**Issue Persists:** Attempt #{user_state['attempt']} at fixing {error_type}.")
     else:
         user_state["attempt"] = 1
-        system_messages.append(f"🔍 **New Challenge:** Encountered a {error_type}.")
+        system_messages.append(f"**New Challenge:** Encountered a {error_type}.")
 
     user_state["last_error"] = error_type
-    
-    # REMOVED: user_state["draft_code"] = request.code 
-    # Logic: Running code shouldn't overwrite the manually saved "safe" version.
+
 
     SESSIONS[session_key] = user_state
     save_sessions_to_disk(SESSIONS)
 
-    # --- STEP 3: GENERATE AI HINT & PATCH ---
+    #GENERATE AI HINT & PATCH
     hint = "Congratulations! You are ready for the next challenge."
     citation = ""
     patch = None
-    
+
     if error_type != "SUCCESS":
         agent_res = generate_hint(
             code=request.code,
@@ -199,15 +184,15 @@ def submit_code(request: SubmitRequest):
             attempt=user_state["attempt"],
             evidence=clean_evidence
         )
-        
+
         hint = agent_res.get("hint")
         citation = agent_res.get("citation")
         patch = agent_res.get("patch")
 
         if error_type == "LOGIC_ERROR" and user_state["attempt"] >= 3:
-            logs.append("\n🔓 **Diff Analysis Unlocked (Attempt 3+):**")
+            logs.append("\n**Diff Analysis Unlocked (Attempt 3+):**")
             logs.append(evidence.get("diff", "No output diff available.") if isinstance(evidence, dict) else "")
-            system_messages.append("💡 **Source Patch Unlocked:** A suggested code fix is now available.")
+            system_messages.append("**Source Patch Unlocked:** A suggested code fix is now available.")
 
     return {
         "status": error_type,

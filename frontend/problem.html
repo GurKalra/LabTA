@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LabTA | Integrated IDE</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="ide-wrapper">
+      <aside class="left-panel" id="left-sidebar">
+        <div class="header-bar" style="justify-content: flex-start">
+          <button class="btn btn-back" onclick="location.href='selection.html'">
+            ← Challenges
+          </button>
+        </div>
+
+        <div class="problem-content" style="padding: 20px">
+          <h2 id="prob-title">Loading Problem...</h2>
+          <div class="difficulty-tag" id="prob-diff">---</div>
+
+          <div class="section">
+            <h4>Description</h4>
+            <p
+              id="prob-desc"
+              style="color: var(--text-dim); line-height: 1.6"
+            ></p>
+          </div>
+
+          <div class="section" style="margin-top: 20px">
+            <h4>Sample Case</h4>
+            <div
+              class="sample-box"
+              style="
+                background: #000;
+                padding: 10px;
+                border-radius: 4px;
+                margin-top: 10px;
+              "
+            >
+              <small style="color: var(--accent-blue)">INPUT</small>
+              <pre
+                id="sample-input"
+                style="
+                  font-family: var(--font-mono);
+                  font-size: 12px;
+                  margin-bottom: 10px;
+                "
+              ></pre>
+              <small style="color: var(--matrix-green)">EXPECTED OUTPUT</small>
+              <pre
+                id="sample-output"
+                style="font-family: var(--font-mono); font-size: 12px"
+              ></pre>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="resizer" id="dragMe"></div>
+
+      <main class="center-panel">
+        <div class="header-bar">
+          <div class="editor-settings">
+            <select id="language-select">
+              <option value="python">Python 3</option>
+              <option value="c">C (GCC)</option>
+              <option value="cpp">C++ (G++)</option>
+              <option value="java">Java</option>
+            </select>
+          </div>
+
+          <div class="editor-actions">
+            <button id="save-btn" class="btn btn-save">💾 Save Draft</button>
+            <button id="run-btn" class="btn btn-run">🚀 Run & Submit</button>
+          </div>
+        </div>
+
+        <textarea id="editor-textarea"></textarea>
+      </main>
+
+      <aside class="right-panel">
+        <div class="terminal-header">AGENT_LOGS_v2.0</div>
+        <div id="agent-console">
+          <div class="log-entry">> System idle. Waiting for execution...</div>
+        </div>
+
+        <div id="ai-hints">
+          <div style="color: #555; text-align: center; margin-top: 50px">
+            AI Hints will appear here after execution.
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+      const urlParams = new URLSearchParams(window.location.search);
+      const PROBLEM_ID = urlParams.get("id") || "basic_01_greatest";
+      const USER_ID =
+        localStorage.getItem("labta_user_id") || "student_default";
+
+      // 1. Initialize CodeMirror
+      const editor = CodeMirror.fromTextArea(
+        document.getElementById("editor-textarea"),
+        {
+          lineNumbers: true,
+          theme: "dracula",
+          mode: "python",
+          indentUnit: 4,
+          autoCloseBrackets: true,
+          matchBrackets: true,
+        }
+      );
+
+      // 2. Dynamic Resizing Logic (The "Edge")
+      const resizer = document.getElementById("dragMe");
+      const leftSide = document.getElementById("left-sidebar");
+
+      resizer.addEventListener("mousedown", function (e) {
+        document.addEventListener("mousemove", resize);
+        document.addEventListener("mouseup", stopResize);
+        resizer.classList.add("active");
+      });
+
+      function resize(e) {
+        const newWidth = e.clientX;
+        if (newWidth > 200 && newWidth < 600) {
+          leftSide.style.width = newWidth + "px";
+        }
+      }
+
+      function stopResize() {
+        document.removeEventListener("mousemove", resize);
+        resizer.classList.remove("active");
+      }
+
+      // 3. Load Problem Data and Drafts
+      async function loadIDE() {
+        try {
+          // Get Problem Specs
+          const pRes = await fetch(`${API_BASE}/problems`);
+          const problems = await pRes.json();
+          const p = problems[PROBLEM_ID];
+
+          document.getElementById("prob-title").innerText = p.title;
+          document.getElementById("prob-desc").innerText = p.description;
+          document.getElementById("prob-diff").innerText = p.difficulty;
+          document.getElementById("sample-input").innerText =
+            p.sample_cases[0].input;
+          document.getElementById("sample-output").innerText =
+            p.sample_cases[0].output;
+
+          // Load existing draft from backend
+          const dRes = await fetch(
+            `${API_BASE}/draft/${USER_ID}/${PROBLEM_ID}`
+          );
+          const draft = await dRes.json();
+          if (draft.draft_code) editor.setValue(draft.draft_code);
+        } catch (err) {
+          console.error("Failed to sync with backend:", err);
+        }
+      }
+
+      // 4. Save Logic (@app.post("/save"))
+      document.getElementById("save-btn").onclick = async () => {
+        const code = editor.getValue();
+        const res = await fetch(`${API_BASE}/save`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: USER_ID,
+            problem_id: PROBLEM_ID,
+            code: code,
+          }),
+        });
+        if (res.ok) alert("Draft successfully saved to cloud.");
+      };
+
+      // 5. Run Logic (@app.post("/submit"))
+      document.getElementById("run-btn").onclick = async () => {
+        const consoleDiv = document.getElementById("agent-console");
+        const hintDiv = document.getElementById("ai-hints");
+
+        consoleDiv.innerHTML = `<div class="log-entry">> Initializing Docker Container...</div>`;
+        hintDiv.innerHTML = `<div class="loading">AI is analyzing...</div>`;
+
+        try {
+          const response = await fetch(`${API_BASE}/submit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: USER_ID,
+              problem_id: PROBLEM_ID,
+              language: document.getElementById("language-select").value,
+              code: editor.getValue(),
+            }),
+          });
+
+          const data = await response.json();
+
+          // Show Agent Logs
+          consoleDiv.innerHTML = data.agent_logs
+            .map((log) => `<div class="log-entry">> ${log}</div>`)
+            .join("");
+
+          // Show AI Response
+          hintDiv.innerHTML = `
+                    <div class="hint-card">
+                        <strong style="color:var(--accent-blue)">[${
+                          data.status
+                        }]</strong>
+                        <p style="margin-top:10px">${data.hint}</p>
+                        ${
+                          data.citation
+                            ? `<div style="font-size:11px; color:#777; margin-top:10px; border-top:1px solid #333; pt:5px">Ref: ${data.citation}</div>`
+                            : ""
+                        }
+                    </div>
+                `;
+
+          if (data.patch) {
+            hintDiv.innerHTML += `<div class="patch-box"><h4>Suggested Fix:</h4><pre>${data.patch}</pre></div>`;
+          }
+        } catch (err) {
+          consoleDiv.innerHTML += `<div class="log-entry error">> Connection Error: Check if backend is running.</div>`;
+        }
+      };
+
+      // Change editor mode based on dropdown
+      document.getElementById("language-select").onchange = (e) => {
+        const val = e.target.value;
+        const mode = val === "python" ? "python" : "text/x-csrc";
+        editor.setOption("mode", mode);
+      };
+
+      window.onload = loadIDE;
+    </script>
+  </body>
+</html>

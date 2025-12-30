@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LabTA | Challenge Selection</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="selection-page">
+    <div class="selection-container">
+      <header class="selection-header">
+        <div class="header-content">
+          <button
+            class="btn btn-back"
+            onclick="location.href='home.html'"
+            style="margin-bottom: 15px"
+          >
+            ← Home
+          </button>
+          <h1>
+            Lab<span style="color: var(--accent-blue)">TA</span> Navigator
+          </h1>
+          <p>
+            Select a challenge to begin your session. The AI agent is ready to
+            assist.
+          </p>
+        </div>
+      </header>
+
+      <div id="problem-grid" class="problem-grid">
+        <div class="loading-state">
+          <p>Scanning local database for active problems...</p>
+          <div class="loader"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+
+      /**
+       * Fetches problems.json data from the FastAPI backend
+       * and renders cards dynamically.
+       */
+      async function initSelection() {
+        const grid = document.getElementById("problem-grid");
+
+        try {
+          // Hits the @app.get("/problems") endpoint in your app.py
+          const response = await fetch(`${API_BASE}/problems`);
+
+          if (!response.ok) throw new Error("Backend unreachable");
+
+          const problems = await response.json();
+
+          // Clear the loading state
+          grid.innerHTML = "";
+
+          // Iterate through the dictionary keys from problems.json
+          Object.entries(problems).forEach(([id, data]) => {
+            const card = document.createElement("div");
+            card.className = "problem-card";
+
+            // Set up the click event to pass the ID to the IDE page
+            card.onclick = () => {
+              window.location.href = `problem.html?id=${id}`;
+            };
+
+            // Calculate case count safely (Backend 'case_count' OR fallback to sample length)
+            const count = data.case_count || (data.sample_cases || []).length;
+
+            // Dynamic HTML based on your JSON structure
+            card.innerHTML = `
+                        <div class="difficulty-tag ${data.difficulty.toLowerCase()}">
+                            ${data.difficulty}
+                        </div>
+                        <h3>${data.title}</h3>
+                        <p class="description">${data.description}</p>
+                        <div class="card-footer">
+                            <span class="case-count">📂 ${count} Test Cases</span>
+                            <span class="action-text">Launch IDE →</span>
+                        </div>
+                    `;
+
+            grid.appendChild(card);
+          });
+        } catch (error) {
+          console.error("Selection Error:", error);
+          grid.innerHTML = `
+                    <div class="error-box">
+                        <h3>Connection Failed</h3>
+                        <p>Could not connect to the LabTA backend at ${API_BASE}. 
+                        Ensure <code>uvicorn app:app</code> is running.</p>
+                        <button class="btn btn-run" onclick="location.reload()">Retry Connection</button>
+                    </div>
+                `;
+        }
+      }
+
+      // Initialize on load
+      window.addEventListener("DOMContentLoaded", initSelection);
+    </script>
+
+    <style>
+      /* Specific styles for selection page logic */
+      .loading-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 100px;
+        color: var(--text-dim);
+      }
+
+      .loader {
+        border: 3px solid #333;
+        border-top: 3px solid var(--accent-blue);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .difficulty-tag {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 12px;
+        background: #222;
+      }
+
+      .difficulty-tag.easy {
+        color: #00ff88;
+        border: 1px solid #00ff8833;
+      }
+      .difficulty-tag.medium {
+        color: #ffaa00;
+        border: 1px solid #ffaa0033;
+      }
+      .difficulty-tag.hard {
+        color: #ff4444;
+        border: 1px solid #ff444433;
+      }
+
+      .description {
+        font-size: 14px;
+        color: var(--text-dim);
+        line-height: 1.5;
+        margin-bottom: 20px;
+        height: 42px; /* Limit to 2 lines */
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 15px;
+      }
+
+      .case-count {
+        color: var(--text-dim);
+      }
+      .action-text {
+        color: var(--accent-blue);
+        font-weight: 600;
+      }
+
+      .error-box {
+        grid-column: 1 / -1;
+        background: #221111;
+        border: 1px solid var(--error-red);
+        padding: 30px;
+        border-radius: 8px;
+        text-align: center;
+      }
+    </style>
+  </body>
+</html>

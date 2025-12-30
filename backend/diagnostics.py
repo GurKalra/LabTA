@@ -5,10 +5,9 @@ PATTERNS = {
     # Capture Groups: 1=File, 2=Line, 3=Col, 4=Type, 5=Message
     "c": r"(.*?):(\d+):(\d+): (error|warning|fatal error): (.+)",
     "cpp": r"(.*?):(\d+):(\d+): (error|warning|fatal error): (.+)",
-    
-    # Java Compiler Output (javac): "Main.java:12: error: ';' expected"
+    # Java Compiler Output (javac)
     "java": r"(.*?):(\d+): error: (.+)",
-    
+    # Python Special Case
     "python": "SPECIAL_HANDLING"
 }
 
@@ -23,21 +22,17 @@ def parse_python_error(stderr_output: str):
     lines = stderr_output.split('\n')
     error_msg = "Runtime Error"
     line_num = "?"
-    
-    # 1. Get the Error Message (Python puts it at the very end)
+    # 1. Get the Error Message
     for line in reversed(lines):
         if line.strip() and "Error:" in line:
             error_msg = line.strip()
             break
-            
-    # 2. Get the Line Number (Python: "Most Recent Call Last")
-    # We loop through ALL lines. The *last* match is the actual crash site.
+    # 2. Get the Line Number
     line_pattern = re.compile(r'File "(.*?)", line (\d+)')
     for line in lines:
         match = line_pattern.search(line)
         if match:
-            line_num = match.group(2) # Keep updating to get the deepest error
-            
+            line_num = match.group(2)
     return {
         "line": line_num,
         "col": "0",
@@ -51,17 +46,14 @@ def parse_java_traceback(stderr_output: str):
     error_msg = lines[0] if lines else "Runtime Error"
     line_num = "?"
 
-    # Java Stack Trace is Top-Down. The first "at Main.java" is the crash.
     trace_pattern = re.compile(r'at .*?\((.*?):(\d+)\)')
-    
+
     for line in lines:
         match = trace_pattern.search(line)
         if match:
-            # We found a stack frame. Is it our file?
             if "Main.java" in match.group(1):
                 line_num = match.group(2)
-                break # <--- STOP IMMEDIATELY. This is the "First Error".
-                
+                break
     return {
         "line": line_num,
         "col": "0",
@@ -73,11 +65,11 @@ def get_first_error(stderr_output: str, language: str):
     if not stderr_output:
         return {"line": "?", "msg": "Unknown Error", "raw": ""}
 
-    # 1. PYTHON SPECIAL CASE
+    # PYTHON SPECIAL CASE
     if language == "python":
         return parse_python_error(stderr_output)
 
-    # 2. STANDARD COMPILERS (C, C++, JAVA COMPILE)
+    # STANDARD COMPILERS (C, C++, JAVA COMPILE)
     pattern = PATTERNS.get(language)
     if pattern:
         regex = re.compile(pattern)
@@ -100,16 +92,15 @@ def get_first_error(stderr_output: str, language: str):
                         "raw": line.strip()
                     }
 
-    # 3. JAVA RUNTIME FALLBACK
-    # If regex failed, it wasn't a compiler error. Check for Runtime Crash.
+    # JAVA RUNTIME FALLBACK
     if language == "java":
         trace_result = parse_java_traceback(stderr_output)
         if trace_result["line"] != "?":
             return trace_result
 
-    # 4. FALLBACK
+    # FALLBACK
     return {
-        "line": "?", 
-        "msg": stderr_output.strip().split('\n')[0][:150], 
+        "line": "?",
+        "msg": stderr_output.strip().split('\n')[0][:150],
         "raw": stderr_output
     }

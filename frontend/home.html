@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LabTA | Home</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="home-page">
+    <div class="home-container">
+      <header class="home-header">
+        <h1>Welcome to Lab<span style="color: var(--accent-blue)">TA</span></h1>
+        <p>Select your portal to continue</p>
+      </header>
+
+      <div class="portal-grid">
+        <div
+          class="portal-card student"
+          onclick="location.href='selection.html'"
+        >
+          <div class="icon">👨‍💻</div>
+          <h2>Student Navigator</h2>
+          <p>
+            Access coding challenges, write code in the IDE, and get AI-powered
+            feedback.
+          </p>
+          <span class="btn-link">Launch IDE &rarr;</span>
+        </div>
+
+        <div
+          class="portal-card teacher"
+          onclick="location.href='dashboard.html'"
+        >
+          <div class="icon">📊</div>
+          <h2>Teacher Dashboard</h2>
+          <p>
+            View real-time analytics, student progress, and common error
+            patterns.
+          </p>
+          <span class="btn-link">View Analytics &rarr;</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

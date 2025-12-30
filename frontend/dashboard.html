@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LabTA | Teacher Analytics Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body style="overflow-y: auto">
+    <div class="dashboard-container">
+      <header class="selection-header">
+        <div class="header-content">
+          <button
+            class="btn btn-back"
+            onclick="location.href='selection.html'"
+            style="margin-bottom: 20px"
+          >
+            ← Back to Navigator
+          </button>
+          <h1>
+            Classroom <span style="color: var(--accent-blue)">Insights</span>
+          </h1>
+          <p>
+            Real-time analysis of student performance and common hurdles based
+            on <code>sessions.json</code>.
+          </p>
+        </div>
+      </header>
+
+      <div
+        class="stats-overview"
+        style="display: flex; gap: 20px; margin-bottom: 30px"
+      >
+        <div class="problem-card" style="flex: 1; text-align: center">
+          <h2 id="total-students">0</h2>
+          <p>Active Student Sessions</p>
+        </div>
+        <div class="problem-card" style="flex: 1; text-align: center">
+          <h2 id="most-common-err" style="color: var(--error-red)">None</h2>
+          <p>Top Stumbling Block</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px">
+        <div class="chart-wrapper">
+          <h3>Error Frequency Distribution</h3>
+          <canvas id="errorBarChart"></canvas>
+        </div>
+
+        <div class="chart-wrapper">
+          <h3>Success vs. Failure Ratio</h3>
+          <canvas id="errorPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+
+      async function loadAnalytics() {
+        try {
+          // Fetch the global SESSIONS object from app.py
+          const response = await fetch(`${API_BASE}/sessions`);
+          const sessions = await response.json();
+
+          const sessionArray = Object.values(sessions);
+          document.getElementById("total-students").innerText =
+            sessionArray.length;
+
+          // Process Data for Charts
+          const errorCounts = {};
+          let successCount = 0;
+          let failureCount = 0;
+
+          sessionArray.forEach((s) => {
+            const err = s.last_error || "NO_ATTEMPT";
+
+            if (err === "SUCCESS") {
+              successCount++;
+            } else if (err !== "NO_ATTEMPT") {
+              failureCount++;
+              errorCounts[err] = (errorCounts[err] || 0) + 1;
+            }
+          });
+
+          // Find Most Common Error
+          const topError = Object.keys(errorCounts).reduce(
+            (a, b) => (errorCounts[a] > errorCounts[b] ? a : b),
+            "None"
+          );
+          document.getElementById("most-common-err").innerText =
+            topError.replace("_", " ");
+
+          renderCharts(errorCounts, successCount, failureCount);
+        } catch (err) {
+          console.error("Dashboard Error:", err);
+          alert(
+            "Could not load session data. Ensure backend is running and /sessions endpoint is added."
+          );
+        }
+      }
+
+      function renderCharts(errorData, success, failure) {
+        // 1. Bar Chart for Specific Errors
+        new Chart(document.getElementById("errorBarChart"), {
+          type: "bar",
+          data: {
+            labels: Object.keys(errorData),
+            datasets: [
+              {
+                label: "Occurrences",
+                data: Object.values(errorData),
+                backgroundColor: "#00a2ff",
+                borderColor: "#00a2ff",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "#222" },
+                ticks: { color: "#888" },
+              },
+              x: { ticks: { color: "#888" } },
+            },
+            plugins: { legend: { display: false } },
+          },
+        });
+
+        // 2. Pie Chart for Pass/Fail
+        new Chart(document.getElementById("errorPieChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["Passed", "Struggling"],
+            datasets: [
+              {
+                data: [success, failure],
+                backgroundColor: ["#00ff41", "#ff4444"],
+                borderWidth: 0,
+                hoverOffset: 10,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: { color: "#e0e0e0", font: { family: "Inter" } },
+              },
+            },
+          },
+        });
+      }
+
+      window.onload = loadAnalytics;
+    </script>
+
+    <style>
+      .chart-wrapper h3 {
+        margin-bottom: 20px;
+        font-size: 1rem;
+        color: var(--accent-blue);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      canvas {
+        max-height: 400px;
+      }
+    </style>
+  </body>
+</html>
