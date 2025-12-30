@@ -1,0 +1,14 @@
+# --- Python & System Garbage ---
+__pycache__/
+*.pyc
+.DS_Store
+
+# --- Virtual Environment ---
+venv/
+env/
+
+# --- Secrets (CRITICAL) ---
+.env
+
+# --- Runtime Workspace ---
+temp_workspace/
