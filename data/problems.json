@@ -1,1 +1,331 @@
-{}
+{
+  "basic_01_greatest": {
+    "title": "Greatest of Two Numbers",
+
+    "description": "Find the greatest of two integers.",
+
+    "difficulty": "Easy",
+
+    "sample_cases": [
+      {
+        "input": "3 7",
+        "output": "7",
+        "explanation": "Compare 3 and 7; 7 is larger."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "10 2", "output": "10" },
+
+      { "input": "-1 -5", "output": "-1" }
+    ]
+  },
+
+  "basic_02_leap": {
+    "title": "Leap Year Check",
+
+    "description": "Check whether a given year is a leap year. A year is leap if divisible by 4 but not by 100, or divisible by 400.",
+
+    "difficulty": "Easy",
+
+    "sample_cases": [
+      {
+        "input": "2020",
+        "output": "Yes",
+        "explanation": "2020 is divisible by 4 and not by 100, so it's a leap year."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "1900", "output": "No" },
+
+      { "input": "2000", "output": "Yes" }
+    ]
+  },
+
+  "basic_03_fibonacci": {
+    "title": "Fibonacci Series",
+
+    "description": "Print first n numbers of the Fibonacci series starting with 0 and 1.",
+
+    "difficulty": "Medium",
+
+    "sample_cases": [
+      {
+        "input": "5",
+        "output": "0 1 1 2 3",
+        "explanation": "Fibonacci sequence: 0,1, next numbers are sum of previous two: 1,2,3."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "1", "output": "0" },
+
+      { "input": "8", "output": "0 1 1 2 3 5 8 13" }
+    ]
+  },
+
+  "basic_04_reverse": {
+    "title": "Reverse a Number",
+
+    "description": "Reverse the digits of a given number.",
+
+    "difficulty": "Medium",
+
+    "sample_cases": [
+      {
+        "input": "123",
+        "output": "321",
+        "explanation": "Digits reversed from 123 to 321."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "100", "output": "1" },
+
+      { "input": "7", "output": "7" }
+    ]
+  },
+
+  "basic_05_gcd_lcm": {
+    "title": "GCD and LCM",
+
+    "description": "Calculate GCD and LCM of two numbers without using inbuilt functions. GCD is the largest number dividing both, LCM = (a*b)/GCD.",
+
+    "difficulty": "Hard",
+
+    "sample_cases": [
+      {
+        "input": "12 18",
+        "output": "GCD=6 LCM=36",
+        "explanation": "GCD of 12 and 18 is 6; LCM = 12*18/6 = 36."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "7 5", "output": "GCD=1 LCM=35" },
+
+      { "input": "20 30", "output": "GCD=10 LCM=60" }
+    ]
+  },
+
+  "array_01_count_even": {
+    "title": "Count Even Numbers",
+
+    "description": "Count the number of even elements in an array.",
+
+    "difficulty": "Easy",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 4 6",
+        "output": "3",
+        "explanation": "Even numbers are 2, 4, and 6, total count = 3."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "3\n1 3 5", "output": "0" },
+
+      { "input": "4\n2 4 6 8", "output": "4" }
+    ]
+  },
+
+  "array_02_min": {
+    "title": "Minimum Element in Array",
+
+    "description": "Find the minimum element in an array.",
+
+    "difficulty": "Easy",
+
+    "sample_cases": [
+      {
+        "input": "4\n5 2 8 1",
+        "output": "1",
+        "explanation": "Compare all elements, 1 is the smallest."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "3\n7 7 7", "output": "7" },
+
+      { "input": "5\n10 5 15 2 8", "output": "2" }
+    ]
+  },
+
+  "array_03_check_sorted": {
+    "title": "Check if Array is Sorted",
+
+    "description": "Check whether the array is sorted in non-decreasing order.",
+
+    "difficulty": "Medium",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 4 6 8 9",
+        "output": "Yes",
+        "explanation": "Each element is <= next element, so array is sorted."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "3\n3 2 1", "output": "No" },
+
+      { "input": "4\n1 2 2 3", "output": "Yes" }
+    ]
+  },
+
+  "array_04_freq_element": {
+    "title": "Frequency of an Element",
+
+    "description": "Count how many times a given element occurs in an array.",
+
+    "difficulty": "Medium",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 2 2\n2",
+        "output": "3",
+        "explanation": "2 appears three times in the array."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "4\n1 1 1 1\n2", "output": "0" },
+
+      { "input": "6\n5 5 6 5 7 5\n5", "output": "4" }
+    ]
+  },
+
+  "array_05_subarray_sum": {
+    "title": "Subarray with Given Sum",
+
+    "description": "Find a continuous subarray whose sum equals the given sum. Output start and end indices (1-based). If none, output -1.",
+
+    "difficulty": "Hard",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 7 5\n12",
+        "output": "2 4",
+        "explanation": "Subarray from index 2 to 4: 2+3+7 = 12."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "4\n1 2 3 4\n10", "output": "1 4" },
+
+      { "input": "3\n1 2 3\n7", "output": "-1" }
+    ]
+  },
+
+  "ll_01_search": {
+    "title": "Search in Linked List",
+
+    "description": "Search an element in a linked list and report if it exists.",
+
+    "difficulty": "Easy",
+
+    "sample_cases": [
+      {
+        "input": "3\n1 2 3\n2",
+        "output": "Found",
+        "explanation": "2 exists in the list."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "3\n1 2 3\n5", "output": "Not Found" },
+
+      { "input": "4\n10 20 30 40\n30", "output": "Found" }
+    ]
+  },
+
+  "ll_02_middle_node": {
+    "title": "Middle Node of Linked List",
+
+    "description": "Find the middle node of a linked list. If even number of nodes, return the second middle node.",
+
+    "difficulty": "Easy",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 4 5",
+        "output": "3",
+        "explanation": "Middle of 5 nodes is node 3."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "4\n1 2 3 4", "output": "3" },
+
+      { "input": "1\n10", "output": "10" }
+    ]
+  },
+
+  "ll_03_reverse_k": {
+    "title": "Reverse Linked List in Groups of K",
+
+    "description": "Reverse a linked list in groups of given size k. If remaining nodes < k, leave them as is.",
+
+    "difficulty": "Medium",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 4 5\n2",
+        "output": "2 1 4 3 5",
+        "explanation": "First group 1,2 reversed to 2,1; second group 3,4 reversed to 4,3; last node 5 remains."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "3\n1 2 3\n3", "output": "3 2 1" },
+
+      { "input": "4\n10 20 30 40\n2", "output": "20 10 40 30" }
+    ]
+  },
+
+  "ll_04_delete_nth": {
+    "title": "Delete Nth Node from End",
+
+    "description": "Delete the Nth node from the end of linked list.",
+
+    "difficulty": "Medium",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 4 5\n2",
+        "output": "1 2 3 5",
+        "explanation": "2nd node from end is 4, removed from list."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "3\n1 2 3\n3", "output": "2 3" },
+
+      { "input": "4\n10 20 30 40\n1", "output": "10 20 30" }
+    ]
+  },
+
+  "ll_05_detect_loop": {
+    "title": "Detect and Remove Loop",
+
+    "description": "Detect a loop in linked list and remove it. If no loop, list remains same.",
+
+    "difficulty": "Hard",
+
+    "sample_cases": [
+      {
+        "input": "5\n1 2 3 4 5\n3",
+        "output": "1 2 3 4 5",
+        "explanation": "Loop starting at node 3 is removed, original list restored."
+      }
+    ],
+
+    "hidden_cases": [
+      { "input": "4\n1 2 3 4\n2", "output": "1 2 3 4" },
+
+      { "input": "3\n10 20 30\n0", "output": "10 20 30" }
+    ]
+  }
+}
