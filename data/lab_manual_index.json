@@ -1,0 +1,41 @@
+{
+  "SYNTAX_ERROR": {
+    "citation": "Lab Manual Module 1: C Programming Basics (Page 12) – Syntax Rules and Grammar"
+  },
+
+  "LOGIC_ERROR": {
+    "citation": "Lecture 5: Algorithms & Flowcharts (Slide 8) – Tracing Code and Logical Errors"
+  },
+
+  "RUNTIME_ERROR": {
+    "citation": "Lab Manual Module 3: Program Execution & Exceptions (Page 27) – Runtime Errors"
+  },
+
+  "SEGFAULT_ERROR": {
+    "citation": "Lab Manual Module 6: Memory & Pointers (Page 54) – Segmentation Faults and Invalid Memory Access"
+  },
+
+  "TIME_LIMIT_EXCEEDED": {
+    "citation": "Lecture 9: Time Complexity Analysis (Slide 15) – Infinite Loops and Performance Issues"
+  },
+
+  "COMPILATION_ERROR": {
+    "citation": "Lab Manual Module 2: Compilation Process (Page 19) – Compiler Errors and Warnings"
+  },
+
+  "INPUT_OUTPUT_ERROR": {
+    "citation": "Lab Manual Module 4: Input & Output Handling (Page 33) – Formatting and Input Errors"
+  },
+
+  "TYPE_ERROR": {
+    "citation": "Lecture 6: Data Types & Type Conversion (Slide 11) – Type Mismatch Errors"
+  },
+
+  "MEMORY_LIMIT_EXCEEDED": {
+    "citation": "Lab Manual Module 7: Memory Management (Page 61) – Memory Constraints and Optimization"
+  },
+
+  "UNKNOWN_ERROR": {
+    "citation": "Debugging Guide Appendix A (Page 72) – General Debugging Strategies"
+  }
+}

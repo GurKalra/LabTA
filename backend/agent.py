@@ -3,19 +3,36 @@ import json
 import requests
 import difflib
 import re
-import time  # NEW: For sleep/retry logic
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
 LLM_API_KEY = os.getenv("LLM_API_KEY", "dummy")
+
+# ==========================================
+# 0. KNOWLEDGE BASE LOADER (MERGE LOGIC)
+# ==========================================
 KNOWLEDGE_BASE = {}
 
-# Load Citations
-try:
-    with open(os.path.join("data", "lab_manual_index.json"), "r") as f:
-        KNOWLEDGE_BASE = json.load(f)
-except: 
-    pass
+def load_knowledge(filename):
+    """Helper to merge JSON data into the global knowledge base."""
+    path = os.path.join("data", filename)
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                data = json.load(f)
+                for key, val in data.items():
+                    if key not in KNOWLEDGE_BASE:
+                        KNOWLEDGE_BASE[key] = {}
+                    # Merge the new data (citation/concept) into the existing key
+                    KNOWLEDGE_BASE[key].update(val)
+            print(f"✅ Loaded knowledge from {filename}")
+        except Exception as e:
+            print(f"⚠️ Error loading {filename}: {e}")
+
+# Load BOTH files to make the AI smart + precise
+load_knowledge("error_dictionary.json")   # Adds 'concept' & 'hint_template'
+load_knowledge("lab_manual_index.json")   # Adds 'citation'
 
 # ==========================================
 # 1. HELPER: MINIMAL SOURCE PATCH GENERATOR
@@ -43,19 +60,17 @@ def call_llm(prompt, expect_json=False):
     if not LLM_API_KEY or LLM_API_KEY == "dummy": 
         return "Set API Key in .env for AI.", None
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={LLM_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={LLM_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
-    # --- NEW: RETRY LOGIC FOR 429 ERRORS ---
     max_retries = 3
     for attempt in range(max_retries):
         try:
             res = requests.post(url, json=payload, headers=headers)
             
-            # If Rate Limited, wait and retry
             if res.status_code == 429:
-                wait_time = (attempt + 1) * 2 # Wait 2s, then 4s, then 6s
+                wait_time = (attempt + 1) * 2
                 print(f"⚠️ AI Rate Limited (429). Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
@@ -84,15 +99,23 @@ def call_llm(prompt, expect_json=False):
     return "AI Quota Exceeded. Please try again in a minute.", None
 
 # ==========================================
-# 3. PUBLIC FUNCTION (Called by App.py)
+# 3. PUBLIC FUNCTION (Integrated)
 # ==========================================
 def generate_hint(code, language, error_type, attempt, evidence):
+    # Retrieve merged knowledge
     knowledge = KNOWLEDGE_BASE.get(error_type, {})
+    
+    # Data for the Frontend (The book reference)
     citation = knowledge.get("citation", "General Concept")
+    
+    # Data for the AI (The definition and template)
+    concept = knowledge.get("concept", "Unknown Error")
+    template = knowledge.get("hint_template", "Explain the error clearly.")
     
     evidence_str = f"Error Context: {evidence}"
     expect_json = False
     
+    # --- STRATEGY LOGIC ---
     if attempt <= 1:
         strategy = (
             "Attempt #1. BE VAGUE. Hint at the concept only (e.g., 'Check your loop limits'). "
@@ -108,7 +131,6 @@ def generate_hint(code, language, error_type, attempt, evidence):
         output_instruction = "Return the hint as plain text (Max 2 sentences)."
         
     else:
-        # --- STRIKE 3: CONCISE FIX ---
         strategy = (
             "Attempt #3. BE DIRECT. The student is stuck. "
             "1. Briefly state the fix (e.g. 'Initialize sum to 0'). "
@@ -121,7 +143,7 @@ def generate_hint(code, language, error_type, attempt, evidence):
         )
         expect_json = True
 
-    # --- CRITICAL FIX: "NO RAMBLING" INSTRUCTION ADDED ---
+    # --- PROMPT WITH DICTIONARY CONTEXT ---
     prompt = f"""
     You are LabTA.
     
@@ -132,6 +154,10 @@ def generate_hint(code, language, error_type, attempt, evidence):
     
     [ERROR DATA]
     {evidence_str}
+    
+    [KNOWLEDGE BASE]
+    Concept: {concept}
+    Recommended Hint Style: "{template}"
     
     [INSTRUCTION]
     {strategy}
@@ -144,7 +170,6 @@ def generate_hint(code, language, error_type, attempt, evidence):
     {output_instruction}
     """
 
-    # ... (rest of the function remains the same) ...
     hint_text, fixed_code_str = call_llm(prompt, expect_json=expect_json)
     
     patch_diff = None

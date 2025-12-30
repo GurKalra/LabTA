@@ -1,1 +1,51 @@
-{}
+{
+  "SYNTAX_ERROR": {
+    "concept": "Syntax & Compilation Rules",
+    "hint_template": "The compiler cannot understand your code structure. Check for typos, missing semicolons, or unclosed brackets."
+  },
+
+  "LOGIC_ERROR": {
+    "concept": "Algorithm Logic & Output Mismatch",
+    "hint_template": "Your code runs without crashing, but the output is different from the expected result. Review your logic, conditions, and calculations step by step."
+  },
+
+  "RUNTIME_ERROR": {
+    "concept": "Runtime Exception Handling",
+    "hint_template": "The program crashed during execution. This often happens due to invalid operations like division by zero or accessing unavailable data."
+  },
+
+  "SEGFAULT_ERROR": {
+    "concept": "Memory Management & Pointer Safety",
+    "hint_template": "Your program tried to access memory that it does not own. Check array bounds, pointer initialization, and memory allocation."
+  },
+
+  "TIME_LIMIT_EXCEEDED": {
+    "concept": "Time Complexity & Infinite Loops",
+    "hint_template": "Your program is taking too long to complete. Look for infinite loops or inefficient algorithms with high time complexity."
+  },
+
+  "COMPILATION_ERROR": {
+    "concept": "Compilation Process & Build Errors",
+    "hint_template": "The compiler failed to generate an executable. Review error messages carefully and ensure all required files and declarations are present."
+  },
+
+  "INPUT_OUTPUT_ERROR": {
+    "concept": "Input Handling & Output Formatting",
+    "hint_template": "The program runs, but input or output is not handled as expected. Verify input reading methods and output formatting."
+  },
+
+  "TYPE_ERROR": {
+    "concept": "Data Types & Type Compatibility",
+    "hint_template": "An operation is being performed on incompatible data types. Check variable types and ensure correct conversions where needed."
+  },
+
+  "MEMORY_LIMIT_EXCEEDED": {
+    "concept": "Memory Usage & Resource Constraints",
+    "hint_template": "Your program is using more memory than allowed. Review data structures and avoid unnecessary memory allocation."
+  },
+
+  "UNKNOWN_ERROR": {
+    "concept": "General Debugging & Error Interpretation",
+    "hint_template": "An unexpected error occurred. Carefully read the error message and isolate the part of the code causing the issue."
+  }
+}
