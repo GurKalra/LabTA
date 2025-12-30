@@ -53,7 +53,7 @@ def call_llm(prompt, expect_json=False):
     if not LLM_API_KEY or LLM_API_KEY == "dummy": 
         return "Set API Key in .env for AI.", None
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={LLM_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={LLM_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 

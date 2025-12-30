@@ -106,7 +106,7 @@
       }
 
       function renderCharts(errorData, success, failure) {
-        // 1. Bar Chart for Specific Errors
+        // Bar Chart for Specific Errors
         new Chart(document.getElementById("errorBarChart"), {
           type: "bar",
           data: {
@@ -135,7 +135,7 @@
           },
         });
 
-        // 2. Pie Chart for Pass/Fail
+        // Pie Chart for Pass/Fail
         new Chart(document.getElementById("errorPieChart"), {
           type: "doughnut",
           data: {
