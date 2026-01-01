@@ -30,13 +30,13 @@ Programming labs are the backbone of hands-on learning, but as class sizes grow,
 
 A single TA may support **50+ students simultaneously**, leading to systemic challenges:
 
-**Instructional Bottlenecks**
+- **Instructional Bottlenecks** :
 Students lose up to **70% of lab time** waiting in queues for minor syntax or runtime issues.
 
-**Pedagogical Fatigue**
+- **Pedagogical Fatigue** :
 Under pressure, TAs resort to spoon-feeding fixes instead of teaching debugging.
 
-**The Data Void**
+- **The Data Void** :
 Instructors have **no real-time insights** into which concepts students struggle with.
 
 The result?
