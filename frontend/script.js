@@ -1,6 +1,6 @@
 /* CONFIGURATION */
 const API_BASE =
-  "https://super-duper-space-dollop-749rxgq97q72x9j9-8000.app.github.dev/";
+  "https://super-duper-space-dollop-749rxgq97q72x9j9-8000.app.github.dev";
 
 let USER_ID = localStorage.getItem("labta_user_id");
 if (!USER_ID) {
