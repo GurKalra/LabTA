@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LabTA | Integrated IDE</title>
+    <link rel="icon" type="image/png" href="logo.png" />
 
     <link rel="stylesheet" href="style.css" />
     <link
@@ -20,7 +21,7 @@
     />
 
     <style>
-      /* IDE Specific Layout Overrides*/
+      /* Keep your existing internal styles for layout overrides here */
       :root {
         --bg-dark: #0d1117;
         --bg-panel: #161b22;
@@ -42,20 +43,48 @@
         height: 100vh;
         overflow: hidden;
       }
-
       .ide-wrapper {
         display: flex;
         height: 100vh;
         width: 100vw;
       }
 
+      /* Panels */
       .left-panel {
         width: 350px;
-        min-width: 250px;
+        min-width: 200px;
         background: var(--bg-panel);
         border-right: 1px solid var(--border-color);
         display: flex;
         flex-direction: column;
+      }
+      .center-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #282a36;
+        min-width: 300px;
+      }
+      .right-panel {
+        width: 350px;
+        min-width: 200px;
+        background: var(--bg-panel);
+        border-left: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Resizers */
+      .resizer {
+        width: 5px;
+        background: var(--bg-dark);
+        cursor: col-resize;
+        z-index: 10;
+        flex-shrink: 0;
+      }
+      .resizer:hover,
+      .resizer.active {
+        background: var(--accent-blue);
       }
 
       .scroll-content {
@@ -63,29 +92,6 @@
         padding: 20px;
         flex: 1;
       }
-
-      /* 2. Resizer Handle */
-      .resizer {
-        width: 5px;
-        background: var(--bg-dark);
-        cursor: col-resize;
-        transition: background 0.2s;
-        z-index: 10;
-      }
-      .resizer:hover,
-      .resizer.active {
-        background: var(--accent-blue);
-      }
-
-      /* 3. Center Panel (Editor) */
-      .center-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background: #282a36;
-        min-width: 400px;
-      }
-
       .editor-toolbar {
         height: 50px;
         background: var(--bg-panel);
@@ -95,24 +101,13 @@
         justify-content: space-between;
         padding: 0 15px;
       }
-
-      /* CodeMirror Height Fix */
       .CodeMirror {
         height: calc(100vh - 50px) !important;
         font-family: var(--font-mono);
         font-size: 14px;
       }
 
-      /* 4. Right Panel (AI/Logs) */
-      .right-panel {
-        width: 300px;
-        background: var(--bg-panel);
-        border-left: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* UI Elements */
+      /* Typography & Buttons */
       h2,
       h4 {
         margin: 0 0 10px 0;
@@ -121,10 +116,8 @@
       p {
         margin-bottom: 15px;
         color: var(--text-secondary);
-        line-height: 1.5;
         font-size: 0.95rem;
       }
-
       .btn {
         padding: 6px 12px;
         border-radius: 6px;
@@ -133,21 +126,14 @@
         color: var(--text-primary);
         cursor: pointer;
         font-size: 13px;
-        transition: 0.2s;
         font-family: var(--font-sans);
       }
       .btn:hover {
         background: #30363d;
       }
-
       .btn-run {
         background: var(--accent-green);
-        border-color: rgba(255, 255, 255, 0.1);
         color: #fff;
-        font-weight: 600;
-      }
-      .btn-run:hover {
-        background: #2ea043;
       }
 
       .difficulty-tag {
@@ -155,29 +141,17 @@
         padding: 2px 8px;
         border-radius: 12px;
         font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
         background: rgba(88, 166, 255, 0.15);
         color: var(--accent-blue);
         margin-bottom: 15px;
       }
-
       .sample-box {
         background: #0d1117;
         border: 1px solid var(--border-color);
         border-radius: 6px;
         padding: 12px;
       }
-      .sample-label {
-        font-size: 10px;
-        font-weight: bold;
-        letter-spacing: 0.5px;
-        display: block;
-        margin-bottom: 4px;
-        font-family: var(--font-sans);
-      }
 
-      /* Terminal Look */
       .terminal-header {
         padding: 10px 15px;
         background: #0d1117;
@@ -204,13 +178,12 @@
       }
 
       #ai-hints {
-        height: 40%;
+        height: 50%;
         border-top: 1px solid var(--border-color);
         padding: 15px;
         overflow-y: auto;
         background: rgba(88, 166, 255, 0.05);
       }
-
       select {
         background: #0d1117;
         color: #fff;
@@ -227,19 +200,16 @@
           style="padding: 15px; border-bottom: 1px solid var(--border-color)"
         >
           <button class="btn" onclick="location.href='selection.html'">
-            &larr; Back
+            ← Back
           </button>
         </div>
-
         <div class="scroll-content">
           <h2 id="prob-title">Loading...</h2>
           <div class="difficulty-tag" id="prob-diff">---</div>
-
           <div class="section">
             <h4>Description</h4>
             <p id="prob-desc">Fetching problem details...</p>
           </div>
-
           <div class="section" style="margin-top: 25px">
             <h4>Sample Case</h4>
             <div class="sample-box">
@@ -248,7 +218,6 @@
                 id="sample-input"
                 style="margin: 0 0 10px 0; color: #fff; font-size: 13px"
               ></pre>
-
               <span class="sample-label" style="color: #7ee787"
                 >EXPECTED OUTPUT</span
               >
@@ -261,7 +230,7 @@
         </div>
       </aside>
 
-      <div class="resizer" id="dragMe"></div>
+      <div class="resizer" id="dragLeft"></div>
 
       <main class="center-panel">
         <div class="editor-toolbar">
@@ -273,22 +242,21 @@
               <option value="java">Java</option>
             </select>
           </div>
-
           <div class="editor-actions">
             <button id="save-btn" class="btn">Save Draft</button>
             <button id="run-btn" class="btn btn-run">Run & Submit</button>
           </div>
         </div>
-
         <textarea id="editor-textarea"></textarea>
       </main>
 
-      <aside class="right-panel">
+      <div class="resizer" id="dragRight"></div>
+
+      <aside class="right-panel" id="right-sidebar">
         <div class="terminal-header">AGENT_LOGS</div>
         <div id="agent-console">
           <div class="log-entry" style="color: #8b949e">> System idle.</div>
         </div>
-
         <div class="terminal-header">AI MENTOR</div>
         <div id="ai-hints">
           <div
@@ -305,212 +273,31 @@
       </aside>
     </div>
 
+    <div id="toast-container"></div>
+
+    <div id="custom-modal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h4 style="margin-bottom: 10px; color: #fff">Confirm Action</h4>
+        <p id="modal-message">Are you sure you want to proceed?</p>
+        <div
+          class="modal-actions"
+          style="
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+          "
+        >
+          <button id="modal-cancel" class="btn">Cancel</button>
+          <button id="modal-confirm" class="btn btn-run">Yes, Apply Fix</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
 
-    <script>
-      // Configuration
-      const API_BASE = "http://localhost:8000";
-      const urlParams = new URLSearchParams(window.location.search);
-      const PROBLEM_ID = urlParams.get("id") || "basic_01_greatest";
-      const USER_ID =
-        localStorage.getItem("labta_user_id") || "student_default";
-
-      // Initialize CodeMirror
-      const editor = CodeMirror.fromTextArea(
-        document.getElementById("editor-textarea"),
-        {
-          lineNumbers: true,
-          theme: "dracula",
-          mode: "python",
-          indentUnit: 4,
-          autoCloseBrackets: true,
-          matchBrackets: true,
-          lineWrapping: true,
-        }
-      );
-
-      // Resizable Sidebar Logic
-      const resizer = document.getElementById("dragMe");
-      const leftSide = document.getElementById("left-sidebar");
-
-      let x = 0;
-      let leftWidth = 0;
-
-      const mouseDownHandler = function (e) {
-        x = e.clientX;
-        leftWidth = leftSide.getBoundingClientRect().width;
-        document.addEventListener("mousemove", mouseMoveHandler);
-        document.addEventListener("mouseup", mouseUpHandler);
-        resizer.classList.add("active");
-        // Prevent iframe/text selection issues
-        document.body.style.userSelect = "none";
-        document.body.style.cursor = "col-resize";
-      };
-
-      const mouseMoveHandler = function (e) {
-        const dx = e.clientX - x;
-        const newWidth = leftWidth + dx;
-        // Limits
-        if (newWidth > 200 && newWidth < 600) {
-          leftSide.style.width = `${newWidth}px`;
-        }
-      };
-
-      const mouseUpHandler = function () {
-        document.removeEventListener("mousemove", mouseMoveHandler);
-        document.removeEventListener("mouseup", mouseUpHandler);
-        resizer.classList.remove("active");
-        document.body.style.removeProperty("user-select");
-        document.body.style.removeProperty("cursor");
-      };
-
-      resizer.addEventListener("mousedown", mouseDownHandler);
-
-      // Load Problem & Draft
-      async function loadIDE() {
-        try {
-          // Fetch Problem Data
-          const pRes = await fetch(`${API_BASE}/problems`);
-          const problems = await pRes.json();
-
-          if (!problems[PROBLEM_ID]) {
-            alert("Problem ID not found!");
-            return;
-          }
-
-          const p = problems[PROBLEM_ID];
-
-          // Populate UI
-          document.getElementById("prob-title").innerText = p.title;
-          document.getElementById("prob-desc").innerText = p.description;
-          document.getElementById("prob-diff").innerText = p.difficulty;
-
-          // Handle Colors for difficulty
-          const diffEl = document.getElementById("prob-diff");
-          if (p.difficulty === "Hard") diffEl.style.color = "#f85149";
-          if (p.difficulty === "Medium") diffEl.style.color = "#d29922";
-
-          // Sample Cases
-          if (p.sample_cases && p.sample_cases.length > 0) {
-            document.getElementById("sample-input").innerText =
-              p.sample_cases[0].input;
-            document.getElementById("sample-output").innerText =
-              p.sample_cases[0].output;
-          }
-
-          // Fetch Existing Draft
-          const dRes = await fetch(
-            `${API_BASE}/draft/${USER_ID}/${PROBLEM_ID}`
-          );
-          if (dRes.ok) {
-            const draft = await dRes.json();
-            if (draft.draft_code) editor.setValue(draft.draft_code);
-          }
-        } catch (err) {
-          console.error("Backend Error:", err);
-          document.getElementById("prob-title").innerText =
-            "Error Connecting to Server";
-        }
-      }
-
-      // Save Logic
-      document.getElementById("save-btn").onclick = async function () {
-        const originalText = this.innerText;
-        this.innerText = "Saving...";
-
-        try {
-          const res = await fetch(`${API_BASE}/save`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              user_id: USER_ID,
-              problem_id: PROBLEM_ID,
-              code: editor.getValue(),
-            }),
-          });
-          if (res.ok) {
-            setTimeout(() => (this.innerText = "Saved ✓"), 500);
-            setTimeout(() => (this.innerText = originalText), 2000);
-          }
-        } catch (e) {
-          alert("Failed to save draft.");
-          this.innerText = originalText;
-        }
-      };
-
-      // Run & Submit Logic
-      document.getElementById("run-btn").onclick = async () => {
-        const consoleDiv = document.getElementById("agent-console");
-        const hintDiv = document.getElementById("ai-hints");
-        const btn = document.getElementById("run-btn");
-
-        // UI Loading State
-        consoleDiv.innerHTML = `<div class="log-entry" style="color:#d29922">> Initializing Docker Container...</div>`;
-        hintDiv.innerHTML = `<div style="text-align:center; padding:20px; color:#8b949e">AI is analyzing your code logic...</div>`;
-        btn.disabled = true;
-        btn.style.opacity = "0.7";
-
-        try {
-          const response = await fetch(`${API_BASE}/submit`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              user_id: USER_ID,
-              problem_id: PROBLEM_ID,
-              language: document.getElementById("language-select").value,
-              code: editor.getValue(),
-            }),
-          });
-
-          const data = await response.json();
-
-          // Render Terminal Logs
-          consoleDiv.innerHTML = data.agent_logs
-            .map((log) => `<div class="log-entry">> ${log}</div>`)
-            .join("");
-
-          // Render AI Hints
-          let statusColor = data.status === "Success" ? "#238636" : "#f85149";
-          hintDiv.innerHTML = `
-                <div style="border-left: 3px solid ${statusColor}; padding-left: 10px; margin-bottom: 15px;">
-                    <strong style="color:${statusColor}; font-size:14px;">[${data.status}]</strong>
-                    <p style="margin-top:5px; color:#c9d1d9; font-size:13px;">${data.hint}</p>
-                </div>
-            `;
-
-          if (data.citation) {
-            hintDiv.innerHTML += `
-                <div style="font-size:11px; color:#8b949e; border-top:1px solid #30363d; padding-top:8px;">
-                    <strong>Reference:</strong> ${data.citation}
-                </div>`;
-          }
-
-          if (data.patch) {
-            hintDiv.innerHTML += `
-                <div style="margin-top:15px; background:#0d1117; padding:10px; border-radius:4px; border:1px solid #30363d;">
-                    <h4 style="font-size:12px; color:#58a6ff;">Suggested Fix:</h4>
-                    <pre style="margin:0; font-size:11px; color:#a5d6ff; overflow-x:auto;">${data.patch}</pre>
-                </div>`;
-          }
-        } catch (err) {
-          consoleDiv.innerHTML += `<div class="log-entry error">> Connection Error: Backend unreachable.</div>`;
-        } finally {
-          btn.disabled = false;
-          btn.style.opacity = "1";
-        }
-      };
-
-      // Language Switcher
-      document.getElementById("language-select").onchange = (e) => {
-        const val = e.target.value;
-        const mode = val === "python" ? "python" : "text/x-csrc";
-        editor.setOption("mode", mode);
-      };
-
-      window.onload = loadIDE;
-    </script>
-    <div id="toast-container"></div>
+    <script src="script.js"></script>
   </body>
 </html>

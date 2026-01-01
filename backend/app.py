@@ -8,7 +8,8 @@ from contextlib import asynccontextmanager
 
 # --- INTERNAL MODULE IMPORTS ---
 from backend.sandbox import run_investigation
-from backend.agent import generate_hint
+# IMPORT THE NEW ANALYZER FUNCTION
+from backend.agent import generate_hint, analyze_error_logs
 from backend.diagnostics import get_first_error
 
 # PERSISTENCE CONFIGURATION
@@ -139,48 +140,64 @@ def submit_code(request: SubmitRequest):
     if problem_id not in PROBLEMS_DATA:
         raise HTTPException(status_code=404, detail="Problem ID not found")
 
-    logs, error_type, evidence = run_investigation(
+    # 1. Run the Sandbox
+    logs, raw_status, evidence = run_investigation(
         code=request.code,
         language=request.language,
         problem_id=problem_id,
         problems_db=PROBLEMS_DATA
     )
 
-    clean_evidence = evidence
-    if error_type in ["SYNTAX_ERROR", "RUNTIME_ERROR"]:
+    # 2. **CRITICAL FIX: PRIORITY ANALYSIS**
+    # We now call the Agent to scan the logs for "hidden" high-priority errors (like scanf warnings)
+    detected_type, detected_hint = analyze_error_logs(logs)
+
+    # If the Analyzer finds a Priority 1 or 2 error (Syntax/Runtime), we USE IT.
+    # This OVERRIDES "LOGIC_ERROR" (Priority 3) if a Priority 1 error exists.
+    if detected_type != "SUCCESS" and raw_status == "LOGIC_ERROR":
+        final_status = detected_type
+        # We replace the confusing "diff" evidence with the clear specific hint (e.g., "Check your scanf")
+        clean_evidence = detected_hint
+        logs.append(f"\n[Agent Override] Logic Error masked by Critical Warning: {detected_type}")
+    else:
+        final_status = raw_status
+        clean_evidence = evidence
+
+    # Standard cleaning for raw sandbox errors
+    if final_status in ["SYNTAX_ERROR", "RUNTIME_ERROR"] and isinstance(evidence, str):
         diag = get_first_error(evidence, request.language)
         clean_evidence = f"Line {diag['line']}: {diag['msg']}"
 
+    # 3. Session Management
     session_key = f"{user_id}_{problem_id}"
     user_state = SESSIONS.get(session_key, {"last_error": None, "attempt": 0})
     system_messages = []
 
-    if error_type == "SUCCESS":
+    if final_status == "SUCCESS":
         system_messages.append(f"**Great Job!** You passed all tests.")
         user_state["attempt"] = 0
-    elif user_state["last_error"] == error_type:
+    elif user_state["last_error"] == final_status:
         user_state["attempt"] += 1
-        system_messages.append(f"**Issue Persists:** Attempt #{user_state['attempt']} at fixing {error_type}.")
+        system_messages.append(f"**Issue Persists:** Attempt #{user_state['attempt']} at fixing {final_status}.")
     else:
         user_state["attempt"] = 1
-        system_messages.append(f"**New Challenge:** Encountered a {error_type}.")
+        system_messages.append(f"**New Challenge:** Encountered a {final_status}.")
 
-    user_state["last_error"] = error_type
-
+    user_state["last_error"] = final_status
 
     SESSIONS[session_key] = user_state
     save_sessions_to_disk(SESSIONS)
 
-    #GENERATE AI HINT & PATCH
+    # 4. Generate AI Hint & Patch
     hint = "Congratulations! You are ready for the next challenge."
     citation = ""
     patch = None
 
-    if error_type != "SUCCESS":
+    if final_status != "SUCCESS":
         agent_res = generate_hint(
             code=request.code,
             language=request.language,
-            error_type=error_type,
+            error_type=final_status,
             attempt=user_state["attempt"],
             evidence=clean_evidence
         )
@@ -189,13 +206,14 @@ def submit_code(request: SubmitRequest):
         citation = agent_res.get("citation")
         patch = agent_res.get("patch")
 
-        if error_type == "LOGIC_ERROR" and user_state["attempt"] >= 3:
+        # Logic Errors unlock diffs after 3 attempts
+        if final_status == "LOGIC_ERROR" and user_state["attempt"] >= 3:
             logs.append("\n**Diff Analysis Unlocked (Attempt 3+):**")
             logs.append(evidence.get("diff", "No output diff available.") if isinstance(evidence, dict) else "")
             system_messages.append("**Source Patch Unlocked:** A suggested code fix is now available.")
 
     return {
-        "status": error_type,
+        "status": final_status,
         "agent_logs": logs,
         "system_messages": system_messages,
         "hint": hint,

@@ -1,51 +1,82 @@
 {
-  "SYNTAX_ERROR": {
-    "concept": "Syntax & Compilation Rules",
-    "hint_template": "The compiler cannot understand your code structure. Check for typos, missing semicolons, or unclosed brackets."
-  },
+  "priority_1_syntax_and_compile": [
+    {
+      "pattern": "expected ';'",
+      "type": "SYNTAX_ERROR",
+      "hint": "You are missing a semicolon `;` at the end of a line.",
+      "priority": 1
+    },
+    {
+      "pattern": "expected expression before|syntax error|invalid syntax|indentation error",
+      "type": "SYNTAX_ERROR",
+      "hint": "The compiler cannot understand your code structure. Check for typos, missing brackets `{}`, or indentation issues.",
+      "priority": 1
+    },
+    {
+      "pattern": "error: definition of|redefinition of",
+      "type": "COMPILATION_ERROR",
+      "hint": "You are defining a function or variable that already exists. Check your naming.",
+      "priority": 1
+    },
+    {
+      "pattern": "too many arguments for format|format specifies type|warning: format",
+      "type": "INPUT_OUTPUT_ERROR",
+      "hint": "Mismatch in `printf` or `scanf`. Your `%d` format specifiers must match the number and type of variables provided.",
+      "priority": 1
+    },
+    {
+      "pattern": "incompatible types|invalid conversion|type mismatch",
+      "type": "TYPE_ERROR",
+      "hint": "You are trying to perform an operation on incompatible data types (e.g., adding a string to an integer).",
+      "priority": 1
+    }
+  ],
 
-  "LOGIC_ERROR": {
-    "concept": "Algorithm Logic & Output Mismatch",
-    "hint_template": "Your code runs without crashing, but the output is different from the expected result. Review your logic, conditions, and calculations step by step."
-  },
+  "priority_2_runtime_and_resources": [
+    {
+      "pattern": "division by zero|floating point exception|ZeroDivisionError",
+      "type": "RUNTIME_ERROR",
+      "hint": "Your program crashed because it tried to divide a number by zero.",
+      "priority": 2
+    },
+    {
+      "pattern": "undeclared|not defined|cannot find symbol|NameError",
+      "type": "COMPILATION_ERROR",
+      "hint": "You are using a variable or function that hasn't been created yet. Check for typos.",
+      "priority": 2
+    },
+    {
+      "pattern": "segmentation fault|SIGSEGV|ArrayIndexOutOfBounds",
+      "type": "SEGFAULT_ERROR",
+      "hint": "Your program tried to access memory it doesn't own. Check array indices and pointer initialization.",
+      "priority": 2
+    },
+    {
+      "pattern": "Killed|Terminated|Timeout",
+      "type": "TIME_LIMIT_EXCEEDED",
+      "hint": "Your program took too long to run. You likely have an infinite loop (e.g., `while(1)` or `while(true)`).",
+      "priority": 2
+    },
+    {
+      "pattern": "std::bad_alloc|MemoryError|Out of memory",
+      "type": "MEMORY_LIMIT_EXCEEDED",
+      "hint": "Your program is using more memory than allowed. Check if you are creating huge arrays or loops.",
+      "priority": 2
+    }
+  ],
 
-  "RUNTIME_ERROR": {
-    "concept": "Runtime Exception Handling",
-    "hint_template": "The program crashed during execution. This often happens due to invalid operations like division by zero or accessing unavailable data."
-  },
-
-  "SEGFAULT_ERROR": {
-    "concept": "Memory Management & Pointer Safety",
-    "hint_template": "Your program tried to access memory that it does not own. Check array bounds, pointer initialization, and memory allocation."
-  },
-
-  "TIME_LIMIT_EXCEEDED": {
-    "concept": "Time Complexity & Infinite Loops",
-    "hint_template": "Your program is taking too long to complete. Look for infinite loops or inefficient algorithms with high time complexity."
-  },
-
-  "COMPILATION_ERROR": {
-    "concept": "Compilation Process & Build Errors",
-    "hint_template": "The compiler failed to generate an executable. Review error messages carefully and ensure all required files and declarations are present."
-  },
-
-  "INPUT_OUTPUT_ERROR": {
-    "concept": "Input Handling & Output Formatting",
-    "hint_template": "The program runs, but input or output is not handled as expected. Verify input reading methods and output formatting."
-  },
-
-  "TYPE_ERROR": {
-    "concept": "Data Types & Type Compatibility",
-    "hint_template": "An operation is being performed on incompatible data types. Check variable types and ensure correct conversions where needed."
-  },
-
-  "MEMORY_LIMIT_EXCEEDED": {
-    "concept": "Memory Usage & Resource Constraints",
-    "hint_template": "Your program is using more memory than allowed. Review data structures and avoid unnecessary memory allocation."
-  },
-
-  "UNKNOWN_ERROR": {
-    "concept": "General Debugging & Error Interpretation",
-    "hint_template": "An unexpected error occurred. Carefully read the error message and isolate the part of the code causing the issue."
-  }
+  "priority_3_logic_and_unknown": [
+    {
+      "pattern": "Logic Mismatch|assert failed|AssertionError|Failure: Logic",
+      "type": "LOGIC_ERROR",
+      "hint": "Your code runs without crashing, but the output matches the wrong answer. Review your logic steps.",
+      "priority": 3
+    },
+    {
+      "pattern": ".*",
+      "type": "UNKNOWN_ERROR",
+      "hint": "An unexpected error occurred. Carefully read the error message above.",
+      "priority": 4
+    }
+  ]
 }

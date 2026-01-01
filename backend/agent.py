@@ -9,27 +9,77 @@ from dotenv import load_dotenv
 load_dotenv()
 LLM_API_KEY = os.getenv("LLM_API_KEY", "dummy")
 
-# KNOWLEDGE BASE LOADER (MERGE LOGIC)
+# KNOWLEDGE BASE & PATTERNS
 KNOWLEDGE_BASE = {}
+ERROR_PATTERNS = []
 
 def load_knowledge(filename):
-    """Helper to merge JSON data into the global knowledge base."""
+    """
+    Loads JSON data.
+    - If it's error_dictionary.json (Priority Lists), it populates ERROR_PATTERNS.
+    - If it's lab_manual_index.json (Citations), it updates KNOWLEDGE_BASE.
+    """
     path = os.path.join("data", filename)
     if os.path.exists(path):
         try:
             with open(path, "r") as f:
                 data = json.load(f)
-                for key, val in data.items():
-                    if key not in KNOWLEDGE_BASE:
-                        KNOWLEDGE_BASE[key] = {}
-                    # Merge the new data (citation/concept) into the existing key
-                    KNOWLEDGE_BASE[key].update(val)
+                
+                # Check if this is the new Priority Dictionary
+                # It has keys like "priority_1_syntax_and_compile"
+                is_priority_dict = any(k.startswith("priority_") for k in data.keys())
+                
+                if is_priority_dict:
+                    for category_list in data.values():
+                        for err in category_list:
+                            # 1. Add to Regex Detection List
+                            ERROR_PATTERNS.append(err)
+                            
+                            # 2. Add to Knowledge Base (Key = Error Type)
+                            err_type = err['type']
+                            if err_type not in KNOWLEDGE_BASE:
+                                KNOWLEDGE_BASE[err_type] = {}
+                            KNOWLEDGE_BASE[err_type].update(err)
+                else:
+                    # Standard Key-Value Loading (like lab_manual_index.json)
+                    for key, val in data.items():
+                        if key not in KNOWLEDGE_BASE:
+                            KNOWLEDGE_BASE[key] = {}
+                        KNOWLEDGE_BASE[key].update(val)
+
             print(f"Loaded knowledge from {filename}")
         except Exception as e:
             print(f"Error loading {filename}: {e}")
 
-load_knowledge("error_dictionary.json")   # Adds 'concept' & 'hint_template'
-load_knowledge("lab_manual_index.json")   # Adds 'citation'
+# Load files
+load_knowledge("error_dictionary.json")
+load_knowledge("lab_manual_index.json")
+
+# --- NEW FUNCTION: PRIORITY ANALYZER ---
+def analyze_error_logs(logs):
+    """
+    Scans logs against ALL error patterns and returns the highest priority one.
+    Priority 1 (Syntax) > Priority 2 (Runtime) > Priority 3 (Logic).
+    """
+    if not logs:
+        return "SUCCESS", "No errors found."
+        
+    log_text = "\n".join(logs)
+    detected_errors = []
+
+    for err in ERROR_PATTERNS:
+        # Check if the regex pattern exists in the logs
+        if re.search(err['pattern'], log_text, re.IGNORECASE):
+            detected_errors.append(err)
+
+    if not detected_errors:
+        return "SUCCESS", "No errors found."
+
+    # Sort by priority (1 is most critical, 3 is least)
+    # This ensures a 'scanf' warning (P1) overrides a 'Logic Error' (P3)
+    best_match = min(detected_errors, key=lambda x: x['priority'])
+    
+    return best_match['type'], best_match['hint']
 
 # HELPER: MINIMAL SOURCE PATCH GENERATOR
 def create_source_diff(user_code, fixed_code):
@@ -48,7 +98,7 @@ def create_source_diff(user_code, fixed_code):
         return "\n".join(diff_list[2:])
     return None
 
-#THE BRAIN
+# LLM CALLER
 def call_llm(prompt, expect_json=False):
     if not LLM_API_KEY or LLM_API_KEY == "dummy": 
         return "Set API Key in .env for AI.", None
@@ -57,15 +107,13 @@ def call_llm(prompt, expect_json=False):
     headers = {"Content-Type": "application/json"}
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
-    max_retries = 5
+    max_retries = 3
     for attempt in range(max_retries):
         try:
             res = requests.post(url, json=payload, headers=headers)
 
             if res.status_code == 429:
-                wait_time = 5 * (2**attempt)
-                print(f"!!!!!!AI Rate Limited (429). Retrying in {wait_time}s...")
-                time.sleep(wait_time)
+                time.sleep(2)
                 continue
 
             if res.status_code != 200:
@@ -89,9 +137,9 @@ def call_llm(prompt, expect_json=False):
             print(f"!!EXCEPTION!!: {e}") 
             return "AI Connection Error.", None
 
-    return "AI Quota Exceeded. Please try again in a minute.", None
+    return "AI Quota Exceeded.", None
 
-# 3. PUBLIC FUNCTION (Integrated)
+# GENERATE HINT
 def generate_hint(code, language, error_type, attempt, evidence):
     # Retrieve merged knowledge
     knowledge = KNOWLEDGE_BASE.get(error_type, {})
@@ -108,7 +156,7 @@ def generate_hint(code, language, error_type, attempt, evidence):
 
     if attempt <= 1:
         strategy = (
-            "Attempt #1. BE VAGUE. Hint at the concept only (e.g., 'Check your loop limits'). "
+            "Attempt #1. BE VAGUE. Hint at the concept only. "
             "Do NOT reveal the solution or line numbers."
         )
         output_instruction = "Return the hint as plain text (Max 1 sentence)."
@@ -123,17 +171,17 @@ def generate_hint(code, language, error_type, attempt, evidence):
     else:
         strategy = (
             "Attempt #3. BE DIRECT. The student is stuck. "
-            "1. Briefly state the fix (e.g. 'Initialize sum to 0'). "
+            "1. Briefly state the fix. "
             "2. Provide the 'fixed_code' with that change applied."
         )
         output_instruction = (
             "Return a JSON object with keys:\n"
-            "- 'hint': A concise explanation (Max 1-2 sentences. NO headers/lists).\n"
+            "- 'hint': A concise explanation.\n"
             "- 'fixed_code': The student's code with the minimal fix applied."
         )
         expect_json = True
 
-    # PROMPT WITH DICTIONARY CONTEXT
+    # PROMPT
     prompt = f"""
     You are LabTA.
 
@@ -151,10 +199,6 @@ def generate_hint(code, language, error_type, attempt, evidence):
 
     [INSTRUCTION]
     {strategy}
-
-    [CONSTRAINT]
-    Do not "think out loud". Do not output "Here is a breakdown" or "Reasoning".
-    Just provide the final output requested.
 
     [OUTPUT FORMAT]
     {output_instruction}

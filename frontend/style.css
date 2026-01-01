@@ -487,3 +487,75 @@ select {
     transform: translateX(100%);
   }
 }
+
+/* --- DIFF VIEWER STYLES --- */
+.diff-add {
+  color: #00ff41; /* Bright Green */
+  background-color: rgba(0, 255, 65, 0.1);
+  display: block;
+  width: 100%;
+}
+
+.diff-remove {
+  color: #ff4444; /* Bright Red */
+  background-color: rgba(255, 68, 68, 0.1);
+  display: block;
+  width: 100%;
+  text-decoration: line-through; /* Cross out removed lines */
+}
+
+.diff-header {
+  color: #58a6ff; /* Blue for @@ ... @@ */
+  font-weight: bold;
+  display: block;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+/* --- CUSTOM MODAL (CONFIRMATION BOX) --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+  z-index: 10000; /* Must be higher than everything else */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.modal-overlay.hidden {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-box {
+  background: #161b22; /* Matches bg-panel */
+  border: 1px solid #30363d;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+  font-family: "Inter", sans-serif;
+  transform: translateY(0);
+  transition: transform 0.2s ease;
+  text-align: center;
+}
+
+/* Subtle entrance animation */
+.modal-overlay:not(.hidden) .modal-box {
+  transform: translateY(-10px);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 25px;
+}
