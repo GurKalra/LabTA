@@ -3,6 +3,7 @@
 ## 🚀 Deployments
 
 **Student Portal (Frontend):** [LabTA](https://lab-ta.vercel.app)
+
 **API Server (Backend):** Hosted on GitHub Codespaces (Containerized Infrastructure)
 
 ---
@@ -52,16 +53,15 @@ It executes student code inside a secure sandbox, analyzes failures, and provide
 
 ### What LabTA Does
 
-- **Secure Sandbox Execution**
+- **Secure Sandbox Execution** :
   Code is compiled and executed inside an isolated Docker container.
-
-- **Hierarchical Diagnosis**
+- **Hierarchical Diagnosis** :
   Distinguishes **Syntax, Runtime, and Logic errors** with precision.
 
-- **Pedagogical Mentorship**
+- **Pedagogical Mentorship** :
   Provides **scaffolded hints**, not direct answers — supporting real learning.
 
-- **Surgical Code Patching**
+- **Surgical Code Patching** :
   When students are stuck, LabTA suggests **git-diff-based patches** to guide recovery without skipping the learning process.
 
 ---
@@ -70,7 +70,7 @@ It executes student code inside a secure sandbox, analyzes failures, and provide
 
 LabTA follows a **modular, decoupled architecture** designed for scalability, security, and reliability.
 
-### 1. Frontend — The Navigator
+### 1. Frontend (The Navigator)
 
 **Tech Stack:** HTML5, CSS3, Vanilla JS (ES6+), CodeMirror 5
 Acts as the student mission control with a high-focus coding IDE.
@@ -80,7 +80,7 @@ The **Apply Fix Engine** parses backend-generated git-diff patches and applies t
 
 ---
 
-### 2. Backend — The Orchestrator
+### 2. Backend (The Orchestrator)
 
 **Tech Stack:** Python 3.10+, FastAPI, Uvicorn
 Coordinates sessions, persists drafts, and manages logic flow.
@@ -89,7 +89,7 @@ Coordinates sessions, persists drafts, and manages logic flow.
 
 ---
 
-### 3. Sandbox — The Engine
+### 3. Sandbox (The Engine)
 
 **Tech Stack:** Docker, Python Subprocess API
 
@@ -103,7 +103,7 @@ Execution Process:
 
 ---
 
-### 4. Agent — The Brain
+### 4. Agent (The Brain)
 
 **Tech Stack:** Google Gemini 2.5 Flash, RAG
 
@@ -134,8 +134,8 @@ LabTA/
 │   └── style.css           # Matrix-themed Dark UI Framework
 ├── data/                   # The Knowledge Layer
 │   ├── problems.json       # Challenge Database & Hidden Tests
-│   ├── error_dictionary.json # Weighted Error Priority Rules
-│   ├── lab_manual_index.json # Knowledge Base for RAG Hints
+│   ├── error_dictionary.json   # Weighted Error Priority Rules
+│   ├── lab_manual_index.json   # Knowledge Base for RAG Hints
 │   └── sessions.json       # Persistent Student Analytics
 ├── runner/                 # The Infrastructure Layer
 │   └── Dockerfile          # Security-Hardened Linux Sandbox
@@ -180,11 +180,13 @@ LabTA/
 
 ## 📈 Impact Assessment
 
-**Instructor Efficiency:** Cuts repetitive TA effort by ~70%
+**Instructor Efficiency:** Cuts repetitive TA effort
+
 **Student Growth:** Encourages debugging instead of copying answers
+
 **Teaching Insight:** Real-time heatmaps reveal learning gaps
 
-**Future Scaling**
+**Future Scaling** - 
 
 - Kubernetes-ready container runners
 - Language-agnostic architecture
