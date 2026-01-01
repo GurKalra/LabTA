@@ -20,7 +20,7 @@ Participants leverage **large language models, generative agents, and multimodal
 - **Gurvansh Singh Kalra (@GurKalra)**
 - **Monalisa Bhattacharjee (@Moonnn15)**
 - **Krishna Shukla (@Krish02185)**
-- **Sreejita Das (@Sreejita)**
+- **Sreejita Das (@Sreejitaxx)**
 
 ---
 
