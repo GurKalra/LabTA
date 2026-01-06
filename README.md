@@ -1,4 +1,5 @@
 # LabTA: Autonomous AI Lab Assistant
+<img width="1842" height="907" alt="Screenshot_20260107_031916" src="https://github.com/user-attachments/assets/a980c2c6-faa0-478c-a60d-db5e897793d8" />
 
 ## 🚀 Deployments
 
