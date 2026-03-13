@@ -1,6 +1,6 @@
 /* CONFIGURATION */
 const API_BASE =
-  "https://upgraded-fortnight-pqrg6xvrjx53vq9-8000.app.github.dev/";
+  "https://upgraded-fortnight-pqrg6xvrjx53vq9-8000.app.github.dev";
 
 let USER_ID = localStorage.getItem("labta_user_id");
 if (!USER_ID) {
